@@ -520,6 +520,32 @@ main .form form .wizard .wizard-menu-active-item::before {
   font-weight: 600;
 }
 
+.form-message {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  font-size: 1rem;
+  line-height: 1.5;
+  white-space: normal;
+  word-break: normal;
+}
+
+.form-message.error-message {
+  background-color: #fff0ed;
+  border: 1px solid #ff5f3f;
+  color: #cc2200;
+}
+
+.form-message.success-message {
+  background-color: #f0fff4;
+  border: 1px solid #2d7a4f;
+  color: #2d7a4f;
+}
+
+
 @media (width >= 600px) {
   main .form button {
     width: unset;
