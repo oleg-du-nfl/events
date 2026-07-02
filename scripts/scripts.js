@@ -11,11 +11,16 @@ import {
   loadSections,
   loadCSS,
 } from './aem.js';
-
 import { getSiteConfig } from './config.js';
 
+/**
+ * Moves all the attributes from a given element to another given element.
+ * @param {Element} from the element to copy attributes from
+ * @param {Element} to the element to copy attributes to
+ */
 export function moveAttributes(from, to, attributes) {
   if (!attributes) {
+    // eslint-disable-next-line no-param-reassign
     attributes = [...from.attributes].map(({ nodeName }) => nodeName);
   }
   attributes.forEach((attr) => {
@@ -27,6 +32,11 @@ export function moveAttributes(from, to, attributes) {
   });
 }
 
+/**
+ * Move instrumentation attributes from a given element to another given element.
+ * @param {Element} from the element to copy attributes from
+ * @param {Element} to the element to copy attributes to
+ */
 export function moveInstrumentation(from, to) {
   moveAttributes(
     from,
@@ -37,6 +47,9 @@ export function moveInstrumentation(from, to) {
   );
 }
 
+/**
+ * load fonts.css and set a session storage flag
+ */
 async function loadFonts() {
   await loadCSS(`${window.hlx.codeBasePath}/styles/fonts.css`);
   try {
@@ -46,14 +59,24 @@ async function loadFonts() {
   }
 }
 
+/**
+ * Builds all synthetic blocks in a container element.
+ * @param {Element} main The container element
+ */
 function buildAutoBlocks() {
   try {
     // TODO: add auto block, if needed
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Auto Blocking failed', error);
   }
 }
 
+/**
+ * Decorates the main element.
+ * @param {Element} main The main element
+ */
+// eslint-disable-next-line import/prefer-default-export
 export function decorateMain(main) {
   decorateButtons(main);
   decorateIcons(main);
@@ -62,6 +85,10 @@ export function decorateMain(main) {
   decorateBlocks(main);
 }
 
+/**
+ * Loads everything needed to get to LCP.
+ * @param {Element} doc The container element
+ */
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
   decorateTemplateAndTheme();
@@ -71,6 +98,7 @@ async function loadEager(doc) {
 
   if (config['main-background']) {
     doc.querySelector('main').style.backgroundColor = config['main-background'];
+    document.body.style.backgroundColor = config['main-background'];
     doc.querySelector('main').style.color = '#ffffff';
   }
 
@@ -78,10 +106,24 @@ async function loadEager(doc) {
   if (main) {
     decorateMain(main);
     document.body.classList.add('appear');
+
+    // Apply per-section form background overrides from section metadata
+    // Section Metadata key "Form Background" becomes dataset.formBackground
+    main.querySelectorAll('.section').forEach((section) => {
+      const formBg = section.dataset.formBackground;
+      if (formBg) {
+        const formWrapper = section.querySelector('.form-wrapper');
+        if (formWrapper) {
+          formWrapper.style.backgroundColor = formBg;
+        }
+      }
+    });
+
     await loadSection(main.querySelector('.section'), waitForFirstImage);
   }
 
   try {
+    /* if desktop (proxy for fast connection) or fonts already loaded, load fonts.css */
     if (window.innerWidth >= 900 || sessionStorage.getItem('fonts-loaded')) {
       loadFonts();
     }
@@ -90,6 +132,10 @@ async function loadEager(doc) {
   }
 }
 
+/**
+ * Loads everything that doesn't need to be delayed.
+ * @param {Element} doc The container element
+ */
 async function loadLazy(doc) {
   const main = doc.querySelector('main');
   await loadSections(main);
@@ -105,8 +151,14 @@ async function loadLazy(doc) {
   loadFonts();
 }
 
+/**
+ * Loads everything that happens a lot later,
+ * without impacting the user experience.
+ */
 function loadDelayed() {
+  // eslint-disable-next-line import/no-cycle
   window.setTimeout(() => import('./delayed.js'), 3000);
+  // load anything that can be postponed to the latest here
 }
 
 async function loadPage() {
