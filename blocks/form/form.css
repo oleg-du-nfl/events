@@ -621,3 +621,31 @@ main div.form-wrapper {
     margin: 0;
   }
 }
+/* Column span classes */
+main .form form .col-6 {
+  grid-column: span 6;
+}
+
+main .form form .col-4 {
+  grid-column: span 4;
+}
+
+main .form form .col-8 {
+  grid-column: span 8;
+}
+
+main .form form .col-3 {
+  grid-column: span 3;
+}
+
+/* Responsive — stack on mobile */
+@media (max-width: 768px) {
+  main .form form .col-6,
+  main .form form .col-4,
+  main .form form .col-8,
+  main .form form .col-3 {
+    grid-column: span 12;
+  }
+}
+
+
