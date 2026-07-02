@@ -537,6 +537,7 @@ main .form form .wizard .wizard-menu-active-item::before {
   background-color: #fff0ed;
   border: 1px solid #ff5f3f;
   color: #cc2200;
+  width: 425px;
 }
 
 .form-message.success-message {
