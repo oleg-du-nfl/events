@@ -231,6 +231,10 @@ main img {
 main > .section {
   margin: 40px 0;
 }
+main .section:last-of-type {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
 
 main > .section > div {
   max-width: 1200px;
