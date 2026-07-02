@@ -48,6 +48,11 @@
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
 }
 
+/* Hidden on desktop, shown only on mobile */
+.hero-banner-logos-mobile {
+  display: none;
+}
+
 .hero-banner-subtext {
   color: #ffffff;
   font-size: clamp(0.95rem, 1.5vw, 1.15rem);
@@ -57,11 +62,17 @@
   opacity: 0.95;
 }
 
-/* Mobile: headline on top, logos side by side below */
+/* Mobile */
 @media (max-width: 768px) {
   .hero-banner-teams {
     flex-direction: column;
     gap: 16px;
+  }
+
+  /* Hide desktop logos on mobile */
+  .hero-banner-logo-left,
+  .hero-banner-logo-right {
+    display: none;
   }
 
   .hero-banner-headline {
@@ -71,17 +82,13 @@
     font-size: clamp(1.6rem, 6vw, 2rem);
   }
 
+  /* Show mobile logos row below headline */
   .hero-banner-logos-mobile {
-    order: 2;
     display: flex;
     flex-direction: row;
     justify-content: center;
     gap: 32px;
-  }
-
-  .hero-banner-logo-left,
-  .hero-banner-logo-right {
-    display: none;
+    margin-top: 8px;
   }
 
   .hero-banner-logo img {
