@@ -128,6 +128,16 @@ main .form form .field-invalid .field-description {
   font-weight: 700;
 }
 
+main .form .form-message.error-message,
+main .form .form-message.success-message {
+  order: -1;
+  grid-column: span 12;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+
 /**
  * Required field indicator
  */
