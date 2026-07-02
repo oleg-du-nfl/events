@@ -1,0 +1,91 @@
+{
+  "definitions": [
+    {
+      "title": "Hero Banner",
+      "id": "hero-banner",
+      "plugins": {
+        "xwalk": {
+          "page": {
+            "resourceType": "core/franklin/components/block/v1/block",
+            "template": {
+              "name": "Hero Banner",
+              "filter": "hero-banner"
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "Hero Banner Item",
+      "id": "hero-banner-item",
+      "plugins": {
+        "xwalk": {
+          "page": {
+            "resourceType": "core/franklin/components/block/v1/block/item",
+            "template": {
+              "name": "Hero Banner Item",
+              "model": "hero-banner-item"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "models": [
+    {
+      "id": "hero-banner-item",
+      "fields": [
+        {
+          "component": "text",
+          "name": "backgroundColor",
+          "value": "#8B0000",
+          "label": "Background Color",
+          "valueType": "string"
+        },
+        {
+          "component": "reference",
+          "name": "badgeImage",
+          "label": "Badge / Shield Image",
+          "valueType": "string",
+          "multi": false
+        },
+        {
+          "component": "reference",
+          "name": "leftTeamLogo",
+          "label": "Left Team Logo",
+          "valueType": "string",
+          "multi": false
+        },
+        {
+          "component": "text",
+          "name": "headline",
+          "value": "",
+          "label": "Headline",
+          "valueType": "string"
+        },
+        {
+          "component": "reference",
+          "name": "rightTeamLogo",
+          "label": "Right Team Logo",
+          "valueType": "string",
+          "multi": false
+        },
+        {
+          "component": "richtext",
+          "name": "subtext",
+          "value": "",
+          "label": "Subtext",
+          "valueType": "string"
+        }
+      ]
+    }
+  ],
+  "filters": [
+    {
+      "id": "hero-banner",
+      "components": [
+        "hero-banner-item"
+      ]
+    }
+  ]
+}
