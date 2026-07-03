@@ -40,8 +40,9 @@ function generateUnique() {
   return new Date().valueOf() + Math.random();
 }
 
-// Path to the standalone config document in da.live (NOT the registration sheet).
-const CONFIG_DOC_PATH = '/events/config';
+// Config document lives at the site root, in the "endpoint" sheet/tab.
+const CONFIG_DOC_PATH = '/config';
+const CONFIG_SHEET_NAME = 'endpoint';
 
 // Cache config so we don't refetch on every submit attempt
 let configPromise = null;
@@ -50,13 +51,13 @@ async function getFormConfig() {
   if (configPromise) return configPromise;
 
   configPromise = (async () => {
-    const configUrl = `${CONFIG_DOC_PATH}.json?sheet=endpoint`;
+    const configUrl = `${CONFIG_DOC_PATH}.json?sheet=${CONFIG_SHEET_NAME}`;
     const res = await fetch(configUrl);
     if (!res.ok) {
       throw new Error(`Could not load form config (${res.status})`);
     }
     const json = await res.json();
-    const rows = json.data || [];
+    const rows = json[CONFIG_SHEET_NAME]?.data || json.data || [];
 
     return rows.reduce((acc, row) => {
       const key = row.key ?? row.Key;
@@ -70,14 +71,14 @@ async function getFormConfig() {
 }
 
 async function submitToRestEndpoint(form) {
-  const config = await getFormConfig();
+  const config = await getFormConfig(form);
 
-  const endpoint = config['submit-endpoint'];
-  const method = config['submit-method'] || 'POST';
+  const endpoint = config['forms-submit-url'];
+  const method = config['forms-submit-method'] || 'POST';
   const successMessage = config['success-message'];
 
   if (!endpoint) {
-    throw new Error('No submit-endpoint configured in the form config sheet');
+    throw new Error('No forms-submit-url configured in the form config sheet');
   }
 
   const formData = new FormData(form);
