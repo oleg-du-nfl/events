@@ -116,42 +116,53 @@ async function submitDocBasedForm(form, captcha) {
     submitFailure(error, form);
   }
 }
-/**
- * Custom form submission handler targeting external REST endpoints
- * @param {Event} e The form submit event
- * @param {Object} form The underlying Form model instance
- * @param {Object} [captcha] Optional captcha token/instance
- */
 export async function handleSubmit(e, form, captcha) {
   e.preventDefault();
 
-  // 1. Extract the native HTML form element
   const formElement = e.target;
   
-  // 2. Validate form fields natively before processing submission
   if (!formElement.checkValidity()) {
     formElement.reportValidity();
     return;
   }
 
-  // 3. Construct the JSON data payload from form inputs
+  // Set the form state to loading/submitting to update UI styling
+  formElement.classList.add('form-submitting');
+  formElement.classList.remove('form-submission-error');
+
   const formData = new FormData(formElement);
   const jsonPayload = Object.fromEntries(formData.entries());
 
-  // 4. Inject Google reCAPTCHA token into payload if available
   if (captcha) {
     jsonPayload['g-recaptcha-response'] = captcha;
   }
 
   try {
-    // 5. Read endpoint metadata globally from your published DA.live config sheet
-    const targetEndpoint = window.siteConfig?.['forms-submit-url'] 
-      || form.action 
-      || 'https://yourdomain.com';
+    let targetEndpoint = 'https://yourdomain.com'; // <-- SET YOUR DEFAULT API FALLBACK URL HERE
+    let requestMethod = 'POST';
 
-    const requestMethod = window.siteConfig?.['forms-submit-method'] || 'POST';
+    // Fetch the live configuration JSON from your DA.live sheet path dynamically
+    try {
+      const configResponse = await fetch('/config.json');
+      if (configResponse.ok) {
+        const configData = await configResponse.json();
+        const rows = configData.data || [];
+        const urlRow = rows.find(row => row.Key === 'forms-submit-url' || row.key === 'forms-submit-url');
+        const methodRow = rows.find(row => row.Key === 'forms-submit-method' || row.key === 'forms-submit-method');
+        
+        if (urlRow && urlRow.Value) targetEndpoint = urlRow.Value;
+        if (methodRow && methodRow.Value) requestMethod = methodRow.Value;
+      }
+    } catch (configError) {
+      console.warn('Could not load config.json dynamically, using fallback endpoint.', configError);
+    }
 
-    // 6. Execute the external REST API call
+    // Safety check: Prevent submitting back to the static AEM page URL
+    if (targetEndpoint.includes(window.location.hostname) && !targetEndpoint.endsWith('.json')) {
+      throw new Error(`Invalid submission URL: ${targetEndpoint}. Cannot POST directly to a static page route.`);
+    }
+
+    // Execute the external REST API call
     const response = await fetch(targetEndpoint, {
       method: requestMethod,
       headers: {
@@ -165,19 +176,39 @@ export async function handleSubmit(e, form, captcha) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    // 7. Route to your success state (e.g., redirect or display message)
-    const result = await response.json();
+    formElement.classList.remove('form-submitting');
+    formElement.classList.add('form-submission-success');
+
     if (form.thankYouUrl) {
       window.location.href = form.thankYouUrl;
     } else {
-      alert('Form submitted successfully!');
       formElement.reset();
+      // Look for the default boilerplate success message element and display it
+      const successMessage = formElement.querySelector('.form-message.success') || formElement.parentNode.querySelector('.form-success-message');
+      if (successMessage) successMessage.style.display = 'block';
     }
 
   } catch (error) {
     console.error('REST Form Submission Failed:', error);
-    alert('There was an issue submitting your form. Please try again.');
+    
+    // Reset state and apply boilerplate validation error state
+    formElement.classList.remove('form-submitting');
+    formElement.classList.add('form-submission-error');
+
+    // Dynamically locate or inject an inline page error message if your block markup uses it
+    let errorMessage = formElement.querySelector('.form-message.error') || formElement.parentNode.querySelector('.form-error-message');
+    
+    if (!errorMessage) {
+      // Create an inline text container if one didn't exist in the DOM
+      errorMessage = document.createElement('div');
+      errorMessage.className = 'form-message error form-error-message';
+      errorMessage.style.color = 'var(--error-color, #ff0000)';
+      errorMessage.style.marginTop = '15px';
+      formElement.appendChild(errorMessage);
+    }
+    
+    errorMessage.textContent = 'There was an issue submitting your form. Please try again.';
+    errorMessage.style.display = 'block';
   }
 }
-
 
