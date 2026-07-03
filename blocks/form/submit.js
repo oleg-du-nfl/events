@@ -116,31 +116,6 @@ async function submitDocBasedForm(form, captcha) {
     submitFailure(error, form);
   }
 }
-
-/*export async function handleSubmit(e, form, captcha) {
-  e.preventDefault();
-
-  const valid = form.checkValidity();
-  if (valid) {
-    e.submitter?.setAttribute('disabled', '');
-    if (form.getAttribute('data-submitting') !== 'true') {
-      form.setAttribute('data-submitting', 'true');
-
-      // hide error message in case it was shown before
-      form.querySelectorAll('.form-message.show').forEach((el) => el.classList.remove('show'));
-
-      if (form.dataset.source === 'sheet') {
-        await submitDocBasedForm(form, captcha);
-      }
-    }
-  } else {
-    const firstInvalidEl = form.querySelector(':invalid:not(fieldset)');
-    if (firstInvalidEl) {
-      firstInvalidEl.focus();
-      firstInvalidEl.scrollIntoView({ behavior: 'smooth' });
-    }
-  }
-}*/
 async function handleSubmit(e, formUrl) {
   e.preventDefault();
   
