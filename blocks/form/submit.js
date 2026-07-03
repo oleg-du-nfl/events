@@ -116,27 +116,68 @@ async function submitDocBasedForm(form, captcha) {
     submitFailure(error, form);
   }
 }
-async function handleSubmit(e, formUrl) {
+/**
+ * Custom form submission handler targeting external REST endpoints
+ * @param {Event} e The form submit event
+ * @param {Object} form The underlying Form model instance
+ * @param {Object} [captcha] Optional captcha token/instance
+ */
+export async function handleSubmit(e, form, captcha) {
   e.preventDefault();
+
+  // 1. Extract the native HTML form element
+  const formElement = e.target;
   
-  // 1. Gather all form inputs into a JSON payload
-  const formData = new FormData(e.target);
-  const payload = Object.fromEntries(formData.entries());
+  // 2. Validate form fields natively before processing submission
+  if (!formElement.checkValidity()) {
+    formElement.reportValidity();
+    return;
+  }
 
-  // 2. Dynamically look for the URL you saved in DA.live's config sheet
-  const targetEndpoint = window.siteConfig?.['forms-submit-url'] || 'https://yourdomain.com';
+  // 3. Construct the JSON data payload from form inputs
+  const formData = new FormData(formElement);
+  const jsonPayload = Object.fromEntries(formData.entries());
 
-  // 3. Post the data payload directly to your REST endpoint
-  const response = await fetch(targetEndpoint, {
-    method: window.siteConfig?.['forms-submit-method'] || 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
+  // 4. Inject Google reCAPTCHA token into payload if available
+  if (captcha) {
+    jsonPayload['g-recaptcha-response'] = captcha;
+  }
 
-  if (response.ok) {
-    alert('Form submitted successfully via REST!');
-  } else {
-    console.error('Submission failed');
+  try {
+    // 5. Read endpoint metadata globally from your published DA.live config sheet
+    const targetEndpoint = window.siteConfig?.['forms-submit-url'] 
+      || form.action 
+      || 'https://yourdomain.com';
+
+    const requestMethod = window.siteConfig?.['forms-submit-method'] || 'POST';
+
+    // 6. Execute the external REST API call
+    const response = await fetch(targetEndpoint, {
+      method: requestMethod,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(jsonPayload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // 7. Route to your success state (e.g., redirect or display message)
+    const result = await response.json();
+    if (form.thankYouUrl) {
+      window.location.href = form.thankYouUrl;
+    } else {
+      alert('Form submitted successfully!');
+      formElement.reset();
+    }
+
+  } catch (error) {
+    console.error('REST Form Submission Failed:', error);
+    alert('There was an issue submitting your form. Please try again.');
   }
 }
+
 
