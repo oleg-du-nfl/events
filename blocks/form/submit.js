@@ -23,14 +23,14 @@ export function submitSuccess(e, form) {
   form.querySelector('button[type="submit"]').disabled = false;
 }
 
-export function submitFailure(e, form) {
-  let errorMessage = form.querySelector('.form-message.error-message');
+export function submitFailure(e, form, customMessage) {
+  let errorMessage = form.parentNode.querySelector('.form-message.error-message');
   if (!errorMessage) {
     errorMessage = document.createElement('div');
     errorMessage.className = 'form-message error-message';
   }
-  errorMessage.innerHTML = 'Some error occured while submitting the form'; // TODO: translation
-  form.prepend(errorMessage);
+  errorMessage.innerHTML = customMessage || 'Some error occured while submitting the form'; // TODO: translation
+  form.parentNode.insertBefore(errorMessage, form);
   errorMessage.scrollIntoView({ behavior: 'smooth' });
   form.setAttribute('data-submitting', 'false');
   form.querySelector('button[type="submit"]').disabled = false;
@@ -40,175 +40,83 @@ function generateUnique() {
   return new Date().valueOf() + Math.random();
 }
 
-function getFieldValue(fe, payload) {
-  if (fe.type === 'radio') {
-    return fe.form.elements[fe.name].value;
-  } if (fe.type === 'checkbox') {
-    if (payload[fe.name]) {
-      if (fe.checked) {
-        return `${payload[fe.name]},${fe.value}`;
-      }
-      return payload[fe.name];
-    } if (fe.checked) {
-      return fe.value;
+// Path to the standalone config document in da.live (NOT the registration sheet).
+const CONFIG_DOC_PATH = '/events/config';
+
+// Cache config so we don't refetch on every submit attempt
+let configPromise = null;
+
+async function getFormConfig() {
+  if (configPromise) return configPromise;
+
+  configPromise = (async () => {
+    const configUrl = `${CONFIG_DOC_PATH}.json?sheet=config`;
+    const res = await fetch(configUrl);
+    if (!res.ok) {
+      throw new Error(`Could not load form config (${res.status})`);
     }
-  } else if (fe.type !== 'file') {
-    return fe.value;
-  }
-  return null;
+    const json = await res.json();
+    const rows = json.data || [];
+
+    return rows.reduce((acc, row) => {
+      const key = row.key ?? row.Key;
+      const value = row.value ?? row.Value;
+      if (key) acc[key] = value;
+      return acc;
+    }, {});
+  })();
+
+  return configPromise;
 }
 
-function constructPayload(form) {
-  const payload = { __id__: generateUnique() };
-  [...form.elements].forEach((fe) => {
-    if (fe.name && !fe.matches('button') && !fe.disabled && fe.tagName !== 'FIELDSET') {
-      const value = getFieldValue(fe, payload);
-      if (fe.closest('.repeat-wrapper')) {
-        payload[fe.name] = payload[fe.name] ? `${payload[fe.name]},${fe.value}` : value;
-      } else {
-        payload[fe.name] = value;
-      }
-    }
+async function submitToRestEndpoint(form) {
+  const config = await getFormConfig();
+
+  const endpoint = config['submit-endpoint'];
+  const method = config['submit-method'] || 'POST';
+  const successMessage = config['success-message'];
+
+  if (!endpoint) {
+    throw new Error('No submit-endpoint configured in the form config sheet');
+  }
+
+  const formData = new FormData(form);
+  const jsonPayload = Object.fromEntries(formData.entries());
+
+  const response = await fetch(endpoint, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify(jsonPayload),
   });
-  return { payload };
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => '');
+    throw new Error(errorText || `HTTP error! status: ${response.status}`);
+  }
+
+  return { successMessage };
 }
 
-async function prepareRequest(form) {
-  const { payload } = constructPayload(form);
-  const headers = {
-    'Content-Type': 'application/json',
-    // eslint-disable-next-line comma-dangle
-    'x-adobe-form-hostname': window?.location?.hostname
-  };
-  const body = { data: payload };
-  let url;
-  let baseUrl = getSubmitBaseUrl();
-  if (!baseUrl) {
-    // eslint-disable-next-line prefer-template
-    baseUrl = 'https://forms.adobe.com/adobe/forms/af/submit/';
-    url = baseUrl + btoa(`${form.dataset.action}.json`);
-  } else {
-    url = form.dataset.action;
-  }
-  return { headers, body, url };
-}
-
-async function submitDocBasedForm(form, captcha) {
-  try {
-    const { headers, body, url } = await prepareRequest(form, captcha);
-    let token = null;
-    if (captcha) {
-      token = await captcha.getToken();
-      body.data['g-recaptcha-response'] = token;
-    }
-    const response = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
-    });
-    if (response.ok) {
-      submitSuccess(response, form);
-    } else {
-      const error = await response.text();
-      throw new Error(error);
-    }
-  } catch (error) {
-    submitFailure(error, form);
-  }
-}
-export async function handleSubmit(e, form, captcha) {
+export async function handleSubmit(e, form) {
   e.preventDefault();
-
   const formElement = e.target;
-  
   if (!formElement.checkValidity()) {
     formElement.reportValidity();
     return;
   }
 
-  // Set the form state to loading/submitting to update UI styling
-  formElement.classList.add('form-submitting');
-  formElement.classList.remove('form-submission-error');
-
-  const formData = new FormData(formElement);
-  const jsonPayload = Object.fromEntries(formData.entries());
-
-  if (captcha) {
-    jsonPayload['g-recaptcha-response'] = captcha;
-  }
+  formElement.setAttribute('data-submitting', 'true');
+  const submitButton = formElement.querySelector('button[type="submit"]');
+  if (submitButton) submitButton.disabled = true;
 
   try {
-    let targetEndpoint = 'https://yourdomain.com'; // <-- SET YOUR DEFAULT API FALLBACK URL HERE
-    let requestMethod = 'POST';
-
-    // Fetch the live configuration JSON from your DA.live sheet path dynamically
-    try {
-      const configResponse = await fetch('/config.json');
-      if (configResponse.ok) {
-        const configData = await configResponse.json();
-        const rows = configData.data || [];
-        const urlRow = rows.find(row => row.Key === 'forms-submit-url' || row.key === 'forms-submit-url');
-        const methodRow = rows.find(row => row.Key === 'forms-submit-method' || row.key === 'forms-submit-method');
-        
-        if (urlRow && urlRow.Value) targetEndpoint = urlRow.Value;
-        if (methodRow && methodRow.Value) requestMethod = methodRow.Value;
-      }
-    } catch (configError) {
-      console.warn('Could not load config.json dynamically, using fallback endpoint.', configError);
-    }
-
-    // Safety check: Prevent submitting back to the static AEM page URL
-    if (targetEndpoint.includes(window.location.hostname) && !targetEndpoint.endsWith('.json')) {
-      throw new Error(`Invalid submission URL: ${targetEndpoint}. Cannot POST directly to a static page route.`);
-    }
-
-    // Execute the external REST API call
-    const response = await fetch(targetEndpoint, {
-      method: requestMethod,
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(jsonPayload),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    formElement.classList.remove('form-submitting');
-    formElement.classList.add('form-submission-success');
-
-    if (form.thankYouUrl) {
-      window.location.href = form.thankYouUrl;
-    } else {
-      formElement.reset();
-      // Look for the default boilerplate success message element and display it
-      const successMessage = formElement.querySelector('.form-message.success') || formElement.parentNode.querySelector('.form-success-message');
-      if (successMessage) successMessage.style.display = 'block';
-    }
-
+    const { successMessage } = await submitToRestEndpoint(formElement);
+    submitSuccess({ payload: { body: { thankYouMessage: successMessage } } }, formElement);
   } catch (error) {
-    console.error('REST Form Submission Failed:', error);
-    
-    // Reset state and apply boilerplate validation error state
-    formElement.classList.remove('form-submitting');
-    formElement.classList.add('form-submission-error');
-
-    // Dynamically locate or inject an inline page error message if your block markup uses it
-    let errorMessage = formElement.querySelector('.form-message.error') || formElement.parentNode.querySelector('.form-error-message');
-    
-    if (!errorMessage) {
-      // Create an inline text container if one didn't exist in the DOM
-      errorMessage = document.createElement('div');
-      errorMessage.className = 'form-message error form-error-message';
-      errorMessage.style.color = 'var(--error-color, #ff0000)';
-      errorMessage.style.marginTop = '15px';
-      formElement.appendChild(errorMessage);
-    }
-    
-    errorMessage.textContent = 'There was an issue submitting your form. Please try again.';
-    errorMessage.style.display = 'block';
+    console.error('Form submission failed:', error);
+    submitFailure(error, formElement);
   }
 }
-
