@@ -588,3 +588,49 @@ export default async function decorate(block) {
   }
   return { form, afbForm };
 }
+
+async function getConfig(formPath) {
+  const configUrl = `${formPath}.json?sheet=config`;
+  const res = await fetch(configUrl);
+  const json = await res.json();
+
+  // EDS returns { data: [{ key: '...', value: '...' }] }
+  return json.data.reduce((acc, { key, value }) => {
+    acc[key] = value;
+    return acc;
+  }, {});
+}
+
+document.querySelector('.form form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const form = e.target;
+  const formPath = document.querySelector('.form pre')?.textContent?.trim()
+    || window.location.pathname;
+
+  const config = await getConfig(formPath);
+  const endpoint = config['submit-endpoint'];
+
+  if (!endpoint) {
+    console.error('No submit endpoint configured');
+    return;
+  }
+
+  const data = Object.fromEntries(new FormData(form));
+
+  try {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (res.ok) {
+      form.innerHTML = '<p>Thank you for registering!</p>';
+    } else {
+      throw new Error(`Submission failed: ${res.status}`);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+});
