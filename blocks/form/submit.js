@@ -50,7 +50,7 @@ async function getFormConfig() {
   if (configPromise) return configPromise;
 
   configPromise = (async () => {
-    const configUrl = `${CONFIG_DOC_PATH}.json?sheet=config`;
+    const configUrl = `${CONFIG_DOC_PATH}.json?sheet=endpoint`;
     const res = await fetch(configUrl);
     if (!res.ok) {
       throw new Error(`Could not load form config (${res.status})`);
