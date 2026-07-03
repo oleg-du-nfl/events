@@ -117,7 +117,7 @@ async function submitDocBasedForm(form, captcha) {
   }
 }
 
-export async function handleSubmit(e, form, captcha) {
+/*export async function handleSubmit(e, form, captcha) {
   e.preventDefault();
 
   const valid = form.checkValidity();
@@ -140,4 +140,28 @@ export async function handleSubmit(e, form, captcha) {
       firstInvalidEl.scrollIntoView({ behavior: 'smooth' });
     }
   }
+}*/
+async function handleSubmit(e, formUrl) {
+  e.preventDefault();
+  
+  // 1. Gather all form inputs into a JSON payload
+  const formData = new FormData(e.target);
+  const payload = Object.fromEntries(formData.entries());
+
+  // 2. Dynamically look for the URL you saved in DA.live's config sheet
+  const targetEndpoint = window.siteConfig?.['forms-submit-url'] || 'https://yourdomain.com';
+
+  // 3. Post the data payload directly to your REST endpoint
+  const response = await fetch(targetEndpoint, {
+    method: window.siteConfig?.['forms-submit-method'] || 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  if (response.ok) {
+    alert('Form submitted successfully via REST!');
+  } else {
+    console.error('Submission failed');
+  }
 }
+
