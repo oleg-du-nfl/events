@@ -1,4 +1,4 @@
-import { DEFAULT_THANK_YOU_MESSAGE, getSubmitBaseUrl } from './constant.js';
+import { DEFAULT_THANK_YOU_MESSAGE } from './constant.js';
 
 export function submitSuccess(e, form) {
   const { payload } = e;
@@ -73,19 +73,18 @@ function getOrNull(value) {
   return value === undefined || value === null || value === '' ? null : value;
 }
 
-function buildSurvey(form, data) {
+function buildSurvey(data) {
   const ticketsValue = getOrNull(data.get('tickets'));
-  return [
-    {
-      questionId: '1',
-      question_order: '1',
-      question_text: 'Which tickets are you interested in? (optional)',
-      response_type: 'general',
-      response: ticketsValue ?? '',
-      pi_response: '',
-    },
-  ];
+  return [{
+    questionId: '1',
+    question_order: '1',
+    question_text: 'Which tickets are you interested in? (optional)',
+    response_type: 'general',
+    response: ticketsValue ?? '',
+    pi_response: '',
+  }];
 }
+
 
 function buildConsents(form, data, config) {
   const now = new Date().toISOString();
@@ -144,13 +143,12 @@ function buildPayload(form, config) {
         },
       },
       extended: {
-        survey: buildSurvey(form, data),
+        survey: buildSurvey(data),
         consents: buildConsents(form, data, config),
       },
     },
   };
 }
-
 
 async function submitToRestEndpoint(form) {
   const config = await getFormConfig(form);
@@ -163,8 +161,8 @@ async function submitToRestEndpoint(form) {
     throw new Error('No forms-submit-url configured in the form config sheet');
   }
 
-  //const formData = new FormData(form);
-  //const jsonPayload = Object.fromEntries(formData.entries());
+  // const formData = new FormData(form);
+  // const jsonPayload = Object.fromEntries(formData.entries());
   const jsonPayload = buildPayload(form, config);
   const response = await fetch(endpoint, {
     method,
