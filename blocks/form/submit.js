@@ -73,6 +73,46 @@ function getOrNull(value) {
   return value === undefined || value === null || value === '' ? null : value;
 }
 
+function buildSurvey(form, data) {
+  const ticketsValue = getOrNull(data.get('tickets'));
+  return [
+    {
+      questionId: '1',
+      question_order: '1',
+      question_text: 'Which tickets are you interested in? (optional)',
+      response_type: 'general',
+      response: ticketsValue ?? '',
+      pi_response: '',
+    },
+  ];
+}
+
+function buildConsents(form, data, config) {
+  const now = new Date().toISOString();
+  const entity = config.campaignEntity || 'nfl';
+
+  const consentFields = [
+    { name: 'privacypolicy', channel: 'email', type: 'privacypolicy' },
+    { name: '18_t&c', channel: 'email', type: '18_t&c' },
+    { name: 'marketing_opt', channel: 'email', type: 'marketing_opt' },
+  ];
+
+  const consents = [{ entity, timestamp: now }];
+
+  consentFields.forEach(({ name, channel, type }) => {
+    const input = form.querySelector(`[name="${name}"]`);
+    consents.push({
+      entity,
+      timestamp: now,
+      channel,
+      optIn: input ? input.checked : null,
+      type,
+    });
+  });
+
+  return consents;
+}
+
 function buildPayload(form, config) {
   const data = new FormData(form);
 
@@ -91,25 +131,26 @@ function buildPayload(form, config) {
       targetAudience: getOrNull(config.targetAudience),
       profile: {
         pi_details: {
-          pi_givenName: getOrNull(data.get('givenName')),
-          pi_familyName: getOrNull(data.get('familyName')),
-          pi_email: getOrNull(data.get('email')),
-          pi_birthdate: getOrNull(data.get('birthdate')),
-          pi_postal_code: getOrNull(data.get('postalCode')),
+          pi_givenName: getOrNull(data.get('pi_givenName')),
+          pi_familyName: getOrNull(data.get('pi_familyName')),
+          pi_email: getOrNull(data.get('pi_email')),
+          pi_birthdate: getOrNull(data.get('pi_birthdate')),
+          pi_postal_code: getOrNull(data.get('pi_postal_code')),
         },
         non_pi_details: {
           favTeam: getOrNull(data.get('favTeam')),
-          preferredlanguage: getOrNull(data.get('preferredLanguage')),
+          preferredlanguage: getOrNull(data.get('preferredlanguage')),
           country: getOrNull(data.get('country')),
         },
       },
       extended: {
         survey: buildSurvey(form, data),
-        consents: buildConsents(form, config),
+        consents: buildConsents(form, data, config),
       },
     },
   };
 }
+
 
 async function submitToRestEndpoint(form) {
   const config = await getFormConfig(form);
