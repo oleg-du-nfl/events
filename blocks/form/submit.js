@@ -69,6 +69,47 @@ async function getFormConfig() {
 
   return configPromise;
 }
+function getOrNull(value) {
+  return value === undefined || value === null || value === '' ? null : value;
+}
+
+function buildPayload(form, config) {
+  const data = new FormData(form);
+
+  return {
+    message: {
+      submissionId: generateUnique().toString(),
+      timestamp: new Date().toISOString(),
+      source: getOrNull(config.source),
+      formName: getOrNull(config.formName),
+      smsMessageId: getOrNull(config.smsMessageId) || 'NA',
+      communicationId: getOrNull(config.communicationId) || 'NA',
+      campaignEntity: getOrNull(config.campaignEntity),
+      campaignType: getOrNull(config.campaignType),
+      targetTerritory: getOrNull(config.targetTerritory),
+      campaignName: getOrNull(config.campaignName),
+      targetAudience: getOrNull(config.targetAudience),
+      profile: {
+        pi_details: {
+          pi_givenName: getOrNull(data.get('givenName')),
+          pi_familyName: getOrNull(data.get('familyName')),
+          pi_email: getOrNull(data.get('email')),
+          pi_birthdate: getOrNull(data.get('birthdate')),
+          pi_postal_code: getOrNull(data.get('postalCode')),
+        },
+        non_pi_details: {
+          favTeam: getOrNull(data.get('favTeam')),
+          preferredlanguage: getOrNull(data.get('preferredLanguage')),
+          country: getOrNull(data.get('country')),
+        },
+      },
+      extended: {
+        survey: buildSurvey(form, data),
+        consents: buildConsents(form, config),
+      },
+    },
+  };
+}
 
 async function submitToRestEndpoint(form) {
   const config = await getFormConfig(form);
@@ -81,9 +122,9 @@ async function submitToRestEndpoint(form) {
     throw new Error('No forms-submit-url configured in the form config sheet');
   }
 
-  const formData = new FormData(form);
-  const jsonPayload = Object.fromEntries(formData.entries());
-
+  //const formData = new FormData(form);
+  //const jsonPayload = Object.fromEntries(formData.entries());
+  const jsonPayload = buildPayload(form, config);
   const response = await fetch(endpoint, {
     method,
     headers: {
