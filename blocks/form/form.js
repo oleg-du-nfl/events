@@ -48,7 +48,6 @@ const createSelect = withFieldWrapper((fd) => {
   return select;
 });
 
-
 function createHeading(fd) {
   const wrapper = createFieldWrapper(fd);
   const heading = document.createElement('h2');
