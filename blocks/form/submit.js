@@ -89,11 +89,12 @@ function buildConsents(form, data, config) {
   const now = new Date().toISOString();
   const entity = config.campaignEntity || 'nfl';
 
-  const consentFields = [
-    { name: 'privacypolicy', channel: 'email', type: 'privacypolicy' },
-    { name: '18_t&c', channel: 'email', type: '18_t&c' },
-    { name: 'marketing_opt', channel: 'email', type: 'marketing_opt' },
-  ];
+const consentFields = [
+  { name: 'privacypolicy', channel: 'email', type: 'privacypolicy' },
+  { name: 'consent18tc', channel: 'email', type: '18_t&c' },   // sheet name changed, JSON type string unchanged
+  { name: 'marketing_opt', channel: 'email', type: 'marketing_opt' },
+];
+
 
   const consents = [{ entity, timestamp: now }];
 
