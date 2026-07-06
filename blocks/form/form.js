@@ -42,8 +42,12 @@ const createTextArea = withFieldWrapper((fd) => {
 const createSelect = withFieldWrapper((fd) => {
   const select = document.createElement('select');
   createDropdownUsingEnum(fd, select);
+  if (fd.required) {
+    select.setAttribute('required', 'required');
+  }
   return select;
 });
+
 
 function createHeading(fd) {
   const wrapper = createFieldWrapper(fd);
