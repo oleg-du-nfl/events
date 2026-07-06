@@ -85,7 +85,6 @@ function buildSurvey(data) {
   }];
 }
 
-
 function buildConsents(form, data, config) {
   const now = new Date().toISOString();
   const entity = config.campaignEntity || 'nfl';
