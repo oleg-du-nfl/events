@@ -17,6 +17,7 @@
   --form-invalid-border-color: #ff5f3f;
   --form-input-padding: 0.75rem 0.6rem;
   --form-input-font-size: 1rem;
+  --form-input-color: #333333;
   --form-input-disable-color: #ebebe4;
   --form-input-border-size: 1px;
   --form-input-border-color: var(--border-color);
@@ -171,7 +172,7 @@ main .form select {
   border: var(--form-input-border-size) solid var(--form-input-border-color);
   width: 100%;
   height: 42px;
-  color: var(--form-label-color);
+  color: var(--form-input-color);
   padding: var(--form-input-padding);
   font-size: var(--form-input-font-size);
   max-width: unset;
