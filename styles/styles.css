@@ -332,8 +332,29 @@ main .section.full-width > div {
   padding: 0 24px;
 }
 
-
 .section.white {
   background-color: #ffffff;
   color: #000000;
 }
+
+body.has-page-background {
+  background-image: var(--page-background-image);
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+body.has-page-background::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.35);
+  z-index: -1;
+  pointer-events: none;
+}
+
+header, footer, main {
+  background-color: transparent;
+}
+
