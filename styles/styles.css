@@ -344,6 +344,9 @@ body.has-page-background {
   background-repeat: no-repeat;
   background-attachment: fixed;
 }
+body.has-page-background footer {
+  background-color: transparent;
+}
 
 body.has-page-background::before {
   content: '';
