@@ -14,40 +14,6 @@ import {
 import { getSiteConfig } from './config.js';
 
 /**
- * Moves all the attributes from a given element to another given element.
- * @param {Element} from the element to copy attributes from
- * @param {Element} to the element to copy attributes to
- */
-export function moveAttributes(from, to, attributes) {
-  if (!attributes) {
-    // eslint-disable-next-line no-param-reassign
-    attributes = [...from.attributes].map(({ nodeName }) => nodeName);
-  }
-  attributes.forEach((attr) => {
-    const value = from.getAttribute(attr);
-    if (value) {
-      to?.setAttribute(attr, value);
-      from.removeAttribute(attr);
-    }
-  });
-}
-
-/**
- * Move instrumentation attributes from a given element to another given element.
- * @param {Element} from the element to copy attributes from
- * @param {Element} to the element to copy attributes to
- */
-export function moveInstrumentation(from, to) {
-  moveAttributes(
-    from,
-    to,
-    [...from.attributes]
-      .map(({ nodeName }) => nodeName)
-      .filter((attr) => attr.startsWith('data-aue-') || attr.startsWith('data-richtext-')),
-  );
-}
-
-/**
  * load fonts.css and set a session storage flag
  */
 async function loadFonts() {
@@ -95,11 +61,20 @@ async function loadEager(doc) {
 
   // Apply site-wide background colors from config
   const config = await getSiteConfig();
-
   if (config['main-background']) {
     doc.querySelector('main').style.backgroundColor = config['main-background'];
     document.body.style.backgroundColor = config['main-background'];
     doc.querySelector('main').style.color = '#ffffff';
+  }
+
+  // Apply optional full-page background image from config.
+  // Leave the "page-background-image" key blank/omitted to keep this off.
+  if (config['page-background-image']) {
+    document.documentElement.style.setProperty(
+      '--page-background-image',
+      `url('${config['page-background-image']}')`,
+    );
+    document.body.classList.add('has-page-background');
   }
 
   const main = doc.querySelector('main');
@@ -121,7 +96,6 @@ async function loadEager(doc) {
 
     await loadSection(main.querySelector('.section'), waitForFirstImage);
   }
-
   try {
     /* if desktop (proxy for fast connection) or fonts already loaded, load fonts.css */
     if (window.innerWidth >= 900 || sessionStorage.getItem('fonts-loaded')) {
