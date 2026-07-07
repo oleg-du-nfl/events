@@ -1,15 +1,17 @@
 export default function decorate(block) {
   const rows = [...block.children];
 
-  const bgColor = rows[0]?.querySelector('p')?.textContent?.trim() || '#8B0000';
+  const bgColor = rows[0]?.querySelector('p')?.textContent?.trim();
   const badgeImg = rows[1]?.querySelector('img');
   const leftLogoImg = rows[2]?.querySelector('img');
   const headline = rows[3]?.querySelector('p')?.textContent?.trim() || '';
   const rightLogoImg = rows[4]?.querySelector('img');
   const subtext = rows[5]?.querySelector('p')?.textContent?.trim() || '';
 
-  block.innerHTML = '';
+block.innerHTML = '';
+if (bgColor) {
   block.style.backgroundColor = bgColor;
+}
 
   // Badge
   if (badgeImg) {
