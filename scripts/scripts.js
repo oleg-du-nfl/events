@@ -10,6 +10,7 @@ import {
   loadSection,
   loadSections,
   loadCSS,
+  getMetadata,
 } from './aem.js';
 import { getSiteConfig } from './config.js';
 
@@ -59,22 +60,22 @@ async function loadEager(doc) {
   document.documentElement.lang = 'en';
   decorateTemplateAndTheme();
 
-  // Apply site-wide background colors from config
+  // Apply site-wide background: page metadata overrides global config,
+  // and an image (if configured) takes precedence over a solid color.
   const config = await getSiteConfig();
-  if (config['main-background']) {
+  const pageBgImage = getMetadata('page-background-image');
+  const bgImage = pageBgImage || config['page-background-image'];
+
+  if (bgImage) {
+    document.documentElement.style.setProperty(
+      '--page-background-image',
+      `url('${bgImage}')`,
+    );
+    document.body.classList.add('has-page-background');
+  } else if (config['main-background']) {
     doc.querySelector('main').style.backgroundColor = config['main-background'];
     document.body.style.backgroundColor = config['main-background'];
     doc.querySelector('main').style.color = '#ffffff';
-  }
-
-  // Apply optional full-page background image from config.
-  // Leave the "page-background-image" key blank/omitted to keep this off.
-  if (config['page-background-image']) {
-    document.documentElement.style.setProperty(
-      '--page-background-image',
-      `url('${config['page-background-image']}')`,
-    );
-    document.body.classList.add('has-page-background');
   }
 
   const main = doc.querySelector('main');
