@@ -61,6 +61,30 @@
   line-height: 1.5;
   opacity: 0.95;
 }
+/* Centered single-image variant */
+.hero-banner.centered-image {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.hero-banner.centered-image .hero-banner-teams {
+  flex-direction: column;
+  gap: 24px;
+}
+
+.hero-banner.centered-image .hero-banner-logo-left,
+.hero-banner.centered-image .hero-banner-logo-right {
+  display: none;
+}
+
+.hero-banner.centered-image .hero-banner-badge img {
+  display: block;
+  margin: 0 auto;
+  max-width: 300px;   /* adjust to taste */
+  width: 60%;
+  height: auto;
+}
 
 /* Mobile */
 @media (max-width: 768px) {
