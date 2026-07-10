@@ -620,7 +620,7 @@ main div.form-wrapper {
 }
 
 /* Page Metadata: Form Background */
-body.has-form-background main .form-container {
+body.has-form-background main .form-wrapper {
   background-color: var(--page-form-background);
 }
 
