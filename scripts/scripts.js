@@ -79,22 +79,26 @@ async function loadEager(doc) {
   }
 
   const main = doc.querySelector('main');
+  const formBackground = getMetadata('form-background');
+const pageBackgroundImage = getMetadata('page-background-image');
+
+if (main && formBackground) {
+  main.style.setProperty('--page-form-background', formBackground);
+  document.body.classList.add('has-form-background');
+}
+
+if (main && pageBackgroundImage) {
+  main.style.setProperty(
+    '--page-form-background-image',
+    `url("${pageBackgroundImage}")`,
+  );
+  document.body.classList.add('has-form-background-image');
+}
+
   if (main) {
     decorateMain(main);
     document.body.classList.add('appear');
-
-    // Apply per-section form background overrides from section metadata
-    // Section Metadata key "Form Background" becomes dataset.formBackground
-    main.querySelectorAll('.section').forEach((section) => {
-      const formBg = section.dataset.formBackground;
-      if (formBg) {
-        const formWrapper = section.querySelector('.form-wrapper');
-        if (formWrapper) {
-          formWrapper.style.backgroundColor = formBg;
-        }
-      }
-    });
-
+    
     await loadSection(main.querySelector('.section'), waitForFirstImage);
   }
   try {
