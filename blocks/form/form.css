@@ -619,6 +619,16 @@ main div.form-wrapper {
   box-sizing: border-box;
 }
 
+/* Page Metadata: Form Background */
+body.has-form-background main .form-container {
+  background-color: var(--page-form-background);
+}
+
+body.has-form-background main .form-wrapper {
+  background-color: transparent;
+}
+
+
 /* Responsive adjustments for mobile */
 @media (width <= 599px) {
   :root {
