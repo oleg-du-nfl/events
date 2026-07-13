@@ -3,22 +3,22 @@ import { loadFragment } from '../fragment/fragment.js';
 import { getSiteConfig } from '../../scripts/config.js';
 
 export default async function decorate(block) {
-  // Page-level metadata overrides global config
+  // Footer styling remains independent from Form Background and Text Color.
   const pageFooterBg = getMetadata('footer-background');
   const config = await getSiteConfig();
-  const bgColor = pageFooterBg || config['footer-background'];
+  const backgroundColor = pageFooterBg || config['footer-background'];
 
-  if (bgColor) {
-    document.querySelector('footer').style.backgroundColor = bgColor;
+  const footer = document.querySelector('footer');
+  if (footer && backgroundColor) {
+    footer.style.backgroundColor = backgroundColor;
   }
 
-  // load footer as fragment
-  const footerMeta = getMetadata('footer');
-  const footerPath = footerMeta ? new URL(footerMeta, window.location).pathname : '/footer';
-  const fragment = await loadFragment(footerPath);
-
+  // Load the footer fragment path from the block content.
+  const footerPath = block.textContent.trim();
   block.textContent = '';
-  const footer = document.createElement('div');
-  while (fragment.firstElementChild) footer.append(fragment.firstElementChild);
-  block.append(footer);
+
+  if (footerPath) {
+    const fragment = await loadFragment(footerPath);
+    if (fragment) block.append(...fragment.childNodes);
+  }
 }
