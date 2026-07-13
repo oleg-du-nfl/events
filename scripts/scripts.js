@@ -15,7 +15,18 @@ import {
 import { getSiteConfig } from './config.js';
 
 /**
- * load fonts.css and set a session storage flag
+ * Decorates the main element.
+ * @param {Element} main The main element
+ */
+function decorateMain(main) {
+  decorateButtons(main);
+  decorateIcons(main);
+  decorateSections(main);
+  decorateBlocks(main);
+}
+
+/**
+ * Loads fonts.
  */
 async function loadFonts() {
   await loadCSS(`${window.hlx.codeBasePath}/styles/fonts.css`);
@@ -27,93 +38,81 @@ async function loadFonts() {
 }
 
 /**
- * Builds all synthetic blocks in a container element.
- * @param {Element} main The container element
+ * Applies page-level background and text-color metadata.
+ *
+ * da.live Metadata keys:
+ * - Form Background: #FFFFFF
+ * - Page Background Image: /path/to/image.jpg
+ * - Text Color: #111111
+ *
+ * Form Background controls the form surface. When an image is also set,
+ * the same color is used as an overlay across the header/hero width.
+ * Text Color, when present, overrides body/heading/form text color site-wide.
+ * @param {Document} doc The document
+ * @param {object} config Site configuration
  */
-function buildAutoBlocks() {
-  try {
-    // TODO: add auto block, if needed
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Auto Blocking failed', error);
+function applyPageBackgroundMetadata(doc, config = {}) {
+  const formBackground = getMetadata('form-background') || config['form-background'];
+  const pageBackgroundImage = getMetadata('page-background-image')
+    || config['page-background-image'];
+  const textColor = getMetadata('text-color') || config['text-color'];
+
+  if (formBackground) {
+    document.documentElement.style.setProperty('--page-form-background', formBackground);
+    document.body.classList.add('has-form-background');
+  }
+
+  if (pageBackgroundImage) {
+    document.documentElement.style.setProperty(
+      '--page-background-image',
+      `url("${pageBackgroundImage}")`,
+    );
+    document.body.classList.add('has-page-background');
+  }
+
+  if (formBackground && pageBackgroundImage) {
+    document.body.classList.add('has-header-background-overlay');
+  }
+
+  if (textColor) {
+    document.documentElement.style.setProperty('--page-text-color', textColor);
+    document.body.classList.add('has-text-color');
+  }
+
+  if (!pageBackgroundImage && config['main-background']) {
+    const main = doc.querySelector('main');
+    if (main) {
+      main.style.backgroundColor = config['main-background'];
+      main.style.color = textColor || '#fff';
+    }
+    document.body.style.backgroundColor = config['main-background'];
   }
 }
 
 /**
- * Decorates the main element.
- * @param {Element} main The main element
- */
-// eslint-disable-next-line import/prefer-default-export
-export function decorateMain(main) {
-  decorateButtons(main);
-  decorateIcons(main);
-  buildAutoBlocks(main);
-  decorateSections(main);
-  decorateBlocks(main);
-}
-
-/**
  * Loads everything needed to get to LCP.
- * @param {Element} doc The container element
+ * @param {Document} doc The document
  */
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
   decorateTemplateAndTheme();
 
-  // Apply site-wide background: page metadata overrides global config,
-  // and an image (if configured) takes precedence over a solid color.
   const config = await getSiteConfig();
-  const pageBgImage = getMetadata('page-background-image');
-  const bgImage = pageBgImage || config['page-background-image'];
-
-  if (bgImage) {
-    document.documentElement.style.setProperty(
-      '--page-background-image',
-      `url('${bgImage}')`,
-    );
-    document.body.classList.add('has-page-background');
-  } else if (config['main-background']) {
-    doc.querySelector('main').style.backgroundColor = config['main-background'];
-    document.body.style.backgroundColor = config['main-background'];
-    doc.querySelector('main').style.color = '#ffffff';
-  }
+  applyPageBackgroundMetadata(doc, config);
 
   const main = doc.querySelector('main');
-  const formBackground = getMetadata('form-background');
-const pageBackgroundImage = getMetadata('page-background-image');
-
-if (main && formBackground) {
-  main.style.setProperty('--page-form-background', formBackground);
-  document.body.classList.add('has-form-background');
-}
-
-if (main && pageBackgroundImage) {
-  main.style.setProperty(
-    '--page-form-background-image',
-    `url("${pageBackgroundImage}")`,
-  );
-  document.body.classList.add('has-form-background-image');
-}
-
   if (main) {
     decorateMain(main);
     document.body.classList.add('appear');
-    
     await loadSection(main.querySelector('.section'), waitForFirstImage);
   }
-  try {
-    /* if desktop (proxy for fast connection) or fonts already loaded, load fonts.css */
-    if (window.innerWidth >= 900 || sessionStorage.getItem('fonts-loaded')) {
-      loadFonts();
-    }
-  } catch (e) {
-    // do nothing
-  }
+
+  if (sessionStorage.getItem('fonts-loaded')) loadFonts();
 }
 
 /**
  * Loads everything that doesn't need to be delayed.
- * @param {Element} doc The container element
+ * @param {Document} doc The document
  */
 async function loadLazy(doc) {
   const main = doc.querySelector('main');
@@ -125,19 +124,15 @@ async function loadLazy(doc) {
 
   loadHeader(doc.querySelector('header'));
   loadFooter(doc.querySelector('footer'));
-
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
 }
 
 /**
- * Loads everything that happens a lot later,
- * without impacting the user experience.
+ * Loads delayed functionality.
  */
 function loadDelayed() {
-  // eslint-disable-next-line import/no-cycle
   window.setTimeout(() => import('./delayed.js'), 3000);
-  // load anything that can be postponed to the latest here
 }
 
 async function loadPage() {
