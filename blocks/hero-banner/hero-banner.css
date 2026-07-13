@@ -1,11 +1,77 @@
+/* ================================
+   Full-bleed wrapper for the background image/overlay
+   Follows the same pattern as blocks/hero/hero.css
+   ================================ */
+.hero-banner-container .hero-banner-wrapper {
+  max-width: unset;
+  padding: 0;
+}
+
 .hero-banner {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  position: relative;
   padding: 48px 24px;
   text-align: center;
   width: 100%;
+  box-sizing: border-box;
+}
+
+@media (width >= 900px) {
+  .hero-banner {
+    padding: 48px 32px;
+  }
+}
+
+/* ================================
+   Metadata: Page Background Image
+   Applied edge-to-edge behind the hero banner itself (not the whole page)
+   when a hero banner is present on the page.
+   ================================ */
+body.has-page-background:has(.hero-banner) {
+  background-image: none;
+}
+
+body.has-page-background .hero-banner {
+  background-image: var(--page-background-image);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* ================================
+   Metadata: Form Background + Page Background Image together
+   Form Background becomes a translucent overlay across the
+   full hero-banner width, on top of the image.
+   ================================ */
+body.has-header-background-overlay .hero-banner::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background-color: var(--page-form-background);
+  opacity: var(--header-overlay-opacity);
+  pointer-events: none;
+}
+
+body.has-header-background-overlay .hero-banner > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ================================
+   Gutter alignment: hero content lines up with the main form fields
+   below (main .section > div uses 24px / 32px side padding, max-width
+   1200px — mirrored here since the hero block itself is full-bleed).
+   ================================ */
+.hero-banner-badge,
+.hero-banner-teams,
+.hero-banner-subtext {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
   box-sizing: border-box;
 }
 
@@ -25,8 +91,6 @@
   justify-content: center;
   gap: 32px;
   flex-wrap: nowrap;
-  width: 100%;
-  max-width: 1200px;
 }
 
 .hero-banner-logo img {
@@ -57,52 +121,9 @@
   color: #ffffff;
   font-size: clamp(0.95rem, 1.5vw, 1.15rem);
   margin-top: 24px;
-  max-width: 600px;
   line-height: 1.5;
   opacity: 0.95;
 }
-/* ── Centered single-image variant ─────────────────────────── */
-.hero-banner.centered-image {
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-.hero-banner.centered-image .hero-banner-teams {
-  flex-direction: column;
-  gap: 24px;
-}
-
-.hero-banner.centered-image .hero-banner-logo-left,
-.hero-banner.centered-image .hero-banner-logo-right {
-  display: none;
-}
-
-/* Desktop: 3× bigger — up to 900px, fills wide sections naturally */
-.hero-banner.centered-image .hero-banner-badge img {
-  display: block;
-  margin: 0 auto;
-  width: 80%;
-  max-width: 900px;
-  height: auto;
-}
-
-/* Tablet (768px and below) */
-@media (max-width: 768px) {
-  .hero-banner.centered-image .hero-banner-badge img {
-    width: 85%;
-    max-width: 480px;
-  }
-}
-
-/* Mobile (480px and below) */
-@media (max-width: 480px) {
-  .hero-banner.centered-image .hero-banner-badge img {
-    width: 90%;
-    max-width: 320px;
-  }
-}
-
 
 /* Mobile */
 @media (max-width: 768px) {
@@ -139,5 +160,48 @@
 
   .hero-banner-badge img {
     width: 90px;
+  }
+}
+
+/* ================================
+   Centered single-image variant
+   Author as: Hero Banner (centered-image)
+   ================================ */
+.hero-banner.centered-image {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.hero-banner.centered-image .hero-banner-teams {
+  flex-direction: column;
+  gap: 24px;
+}
+
+.hero-banner.centered-image .hero-banner-logo-left,
+.hero-banner.centered-image .hero-banner-logo-right {
+  display: none;
+}
+
+/* Desktop: 3x bigger than the original 300px cap */
+.hero-banner.centered-image .hero-banner-badge img {
+  display: block;
+  margin: 0 auto;
+  width: 80%;
+  max-width: 900px;
+  height: auto;
+}
+
+@media (max-width: 768px) {
+  .hero-banner.centered-image .hero-banner-badge img {
+    width: 85%;
+    max-width: 480px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-banner.centered-image .hero-banner-badge img {
+    width: 90%;
+    max-width: 320px;
   }
 }
