@@ -99,6 +99,32 @@ main .form {
   background-color: transparent;
 }
 
+/* ================================
+   Metadata: Form Background
+   da.live Metadata row: Form Background | #FFFFFF
+   Overrides the transparent defaults above only when the page
+   Metadata block sets Form Background. Never applied to the footer.
+   ================================ */
+body.has-form-background main .form-container,
+body.has-form-background main div.form-wrapper {
+  background-color: var(--page-form-background);
+}
+
+body.has-form-background main .form {
+  background-color: transparent;
+}
+
+/* ================================
+   Metadata: Text Color
+   da.live Metadata row: Text Color | #111111
+   Overrides form label/paragraph/legend color site-wide when set.
+   ================================ */
+body.has-text-color main .form {
+  --form-label-color: var(--page-text-color);
+  --form-paragraph-color: var(--page-text-color);
+  --form-fieldset-legend-color: var(--page-text-color);
+}
+
 main .form > div:not(:first-child) {
   display: none;
 }
@@ -137,7 +163,6 @@ main .form .form-message.success-message {
   position: relative;
   z-index: 1;
 }
-
 
 /**
  * Required field indicator
@@ -292,20 +317,12 @@ main .form fieldset.link .checkbox-wrapper label {
   flex-basis: unset;
 }
 
-main .form form fieldset.cards {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-}
-
-main .form form fieldset.cards > .radio-wrapper,
-main .form form fieldset.cards > .checkbox-wrapper {
-  margin: 0;
-  position: relative;
-  flex: 1 1 auto;
-  min-width: 180px;
-  max-width: 300px;
+main .form form fieldset.cards > .radio-wrapper > input,
+main .form form fieldset.cards > .checkbox-wrapper > input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
 main .form form fieldset.cards > .radio-wrapper > label,
@@ -317,35 +334,14 @@ main .form form fieldset.cards > .checkbox-wrapper > label {
   border-radius: var(--form-card-border-radius);
   padding: var(--form-card-padding);
   background-color: var(--form-card-background);
-  cursor: pointer;
-  align-items: center;
-  width: 100%;
-  height: 100%;
   box-shadow: var(--form-card-shadow);
+  cursor: pointer;
   transition: var(--form-card-transition);
-  font-weight: normal;
-  color: var(--form-label-color);
-  font-size: 0.95em;
 }
 
 main .form form fieldset.cards > .radio-wrapper > label:hover,
 main .form form fieldset.cards > .checkbox-wrapper > label:hover {
   box-shadow: var(--form-card-hover-shadow);
-  border-color: #ccc;
-  transform: translateY(-1px);
-}
-
-main .form form fieldset.cards.horizontal {
-  flex-direction: row;
-  column-gap: 0.75rem;
-}
-
-main .form form fieldset.cards > .radio-wrapper > input,
-main .form form fieldset.cards > .checkbox-wrapper > input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
 }
 
 main .form form fieldset.cards > .radio-wrapper > input:checked ~ label,
@@ -431,7 +427,6 @@ main .form form .repeat-wrapper > * {
 main .form form .repeat-wrapper > .repeat-actions {
   order: 2;
 }
-
 /* End of Repeatable Styling */
 
 main .form .file-description {
@@ -524,39 +519,11 @@ main .form form .wizard .wizard-menu-item::before {
   display: inline-block;
 }
 
-main .form form .wizard .wizard-menu-active-item::before {
-  border: 2px solid var(--form-wizard-number-color);
-  background: var(--form-wizard-number-color);
-  color: var(--background-color-primary);
-  font-weight: 600;
-}
-
-.form-message {
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 16px 20px;
-  margin-bottom: 16px;
-  border-radius: 4px;
-  font-size: 1rem;
-  line-height: 1.5;
-  white-space: normal;
-  word-break: normal;
-}
-
-.form-message.error-message {
-  background-color: #fff0ed;
-  border: 1px solid #ff5f3f;
-  color: #cc2200;
-  width: 425px;
-}
-
 .form-message.success-message {
   background-color: #f0fff4;
   border: 1px solid #2d7a4f;
   color: #2d7a4f;
 }
-
 
 @media (width >= 600px) {
   main .form button {
@@ -572,25 +539,6 @@ main .form form .wizard.left {
 main .form form .wizard.left .wizard-menu-items {
   flex-direction: column;
   width: 300px;
-}
-
-main form .panel-wrapper {
-  display: flex;
-  padding: 0;
-  flex-direction: column;
-}
-
-@media (width >= 1200px) {
-  main .form form .form-textarea-wrapper,
-  main .form form .file-wrapper,
-  main .form form .panel-wrapper {
-    flex: 1 0 100%;
-  }
-
-  main .form form .panel-wrapper {
-    flex-flow: row wrap;
-    gap: 10px 15px;
-  }
 }
 
 main .form .file-wrapper .file-drag-area {
@@ -633,9 +581,15 @@ body.has-form-background main .form-wrapper {
     .wizard-menu-items {
       gap: 20px;
     }
+
     margin: 0;
   }
+
+  body.has-form-background main div.form-wrapper {
+    padding: 24px 16px;
+  }
 }
+
 /* Column span classes */
 main .form form .col-6 {
   grid-column: span 6;
@@ -662,5 +616,3 @@ main .form form .col-3 {
     grid-column: span 12;
   }
 }
-
-
