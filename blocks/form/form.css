@@ -10,7 +10,7 @@
   --form-font-size-s: 18px;
   --form-font-size-xs: 16px;
   --form-background-color: var(--background-color-primary);
-  --form-padding: 0 10px;
+  --form-padding: 0;
   --form-columns: 12;
   --form-field-horz-gap: 40px;
   --form-field-vert-gap: 20px;
@@ -88,10 +88,34 @@ form:not(.edit-mode) [data-visible="false"] {
   display: none !important;
 }
 
+/* ================================
+   Gutter alignment: the form sits inside the standard
+   main .section > div wrapper, which already provides
+   24px (mobile) / 32px (desktop) side padding and a
+   1200px max-width. Form Padding is intentionally 0 so
+   no extra inset is added on top of that shared gutter —
+   this is what keeps the form aligned with the hero banner
+   content above it.
+   ================================ */
 main .form-container {
   background-color: transparent;
   padding: var(--form-padding);
   width: var(--form-width);
+  max-width: var(--shared-media-width);
+  margin-inline: auto;
+}
+
+/* Match the hero image's responsive breakpoints so the form width tracks it exactly */
+@media (max-width: 768px) {
+  main .form-container {
+    max-width: var(--shared-media-width-tablet);
+  }
+}
+
+@media (max-width: 480px) {
+  main .form-container {
+    max-width: var(--shared-media-width-mobile);
+  }
 }
 
 /* CHANGED: transparent so section background shows through */
