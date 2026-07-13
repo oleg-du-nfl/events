@@ -5,9 +5,9 @@
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software distributed under
- * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
- * OF ANY KIND, either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
+ * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
  */
 
 :root {
@@ -18,6 +18,12 @@
   --text-color: #131313;
   --link-color: #3b63fb;
   --link-hover-color: #1d3ecf;
+
+  /* metadata-driven page background/text controls */
+  --page-form-background: transparent;
+  --page-background-image: none;
+  --page-text-color: inherit;
+  --header-overlay-opacity: 0.72;
 
   /* fonts */
   --body-font-family: roboto, roboto-fallback, sans-serif;
@@ -231,6 +237,7 @@ main img {
 main > .section {
   margin: 40px 0;
 }
+
 main .section:last-of-type {
   margin-bottom: 0;
   padding-bottom: 0;
@@ -259,12 +266,12 @@ main .section.highlight {
   margin: 0;
   padding: 40px 0;
 }
+
 /* ================================
    Section background themes
    Usage: add Style row to Section
    Metadata table in da.live
    ================================ */
-
 .section.dark-red {
   background-color: #8B0000;
   color: #ffffff;
@@ -344,6 +351,7 @@ body.has-page-background {
   background-repeat: no-repeat;
   background-attachment: fixed;
 }
+
 body.has-page-background footer {
   background-color: transparent;
 }
@@ -357,7 +365,77 @@ body.has-page-background::before {
   pointer-events: none;
 }
 
+/* Suppress the generic full-page dim when a header-width overlay is used instead */
+body.has-header-background-overlay::before {
+  content: none;
+}
+
 header, footer, main {
   background-color: transparent;
 }
 
+/* ================================
+   Metadata: Form Background
+   da.live Metadata row: Form Background | #FFFFFF
+   Applies to the form surface only — never the footer.
+   ================================ */
+body.has-form-background main .form-container,
+body.has-form-background main .form-wrapper {
+  background-color: var(--page-form-background);
+}
+
+body.has-form-background main .form {
+  background-color: transparent;
+}
+
+/* ================================
+   Metadata: Form Background + Page Background Image
+   When both are set, the form color becomes a translucent
+   overlay across the full header/hero width.
+   ================================ */
+body.has-header-background-overlay .hero-banner-container,
+body.has-header-background-overlay main > .section:first-child:not(:has(.hero-banner-container)) {
+  position: relative;
+  isolation: isolate;
+}
+
+body.has-header-background-overlay .hero-banner-container::before,
+body.has-header-background-overlay main > .section:first-child:not(:has(.hero-banner-container))::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background-color: var(--page-form-background);
+  opacity: var(--header-overlay-opacity);
+  pointer-events: none;
+}
+
+body.has-header-background-overlay .hero-banner-container > *,
+body.has-header-background-overlay main > .section:first-child:not(:has(.hero-banner-container)) > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ================================
+   Metadata: Text Color
+   da.live Metadata row: Text Color | #111111
+   Applies page-wide (body copy + headings). Leave blank to keep theme default.
+   ================================ */
+body.has-text-color,
+body.has-text-color main,
+body.has-text-color main h1,
+body.has-text-color main h2,
+body.has-text-color main h3,
+body.has-text-color main h4,
+body.has-text-color main h5,
+body.has-text-color main h6,
+body.has-text-color main p,
+body.has-text-color main li {
+  color: var(--page-text-color);
+}
+
+@media (width <= 768px) {
+  body.has-page-background {
+    background-attachment: scroll;
+  }
+}
