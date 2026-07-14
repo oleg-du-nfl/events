@@ -349,24 +349,22 @@ main .section.full-width > div {
   color: #000000;
 }
 
+/* Applies to the whole page — header, hero, form section, and footer all
+   sit on top of this one fixed image, regardless of whether a hero banner
+   block is present on the page. */
 body.has-page-background {
+  background-image: var(--page-background-image);
   background-size: cover;
   background-position: center top;
   background-repeat: no-repeat;
   background-attachment: fixed;
 }
 
-/* When no hero banner is present, the page-wide image is used instead —
-   see hero-banner.css for the scoped, edge-to-edge hero version. */
-body.has-page-background:not(:has(.hero-banner)) {
-  background-image: var(--page-background-image);
-}
-
 body.has-page-background footer {
   background-color: transparent;
 }
 
-body.has-page-background:not(:has(.hero-banner))::before {
+body.has-page-background::before {
   content: '';
   position: fixed;
   inset: 0;
