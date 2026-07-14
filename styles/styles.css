@@ -25,6 +25,11 @@
   --page-text-color: inherit;
   --header-overlay-opacity: 0.72;
 
+  /* shared width so the hero image and the form line up exactly */
+  --shared-media-width: 900px;
+  --shared-media-width-tablet: 480px;
+  --shared-media-width-mobile: 320px;
+
   /* fonts */
   --body-font-family: roboto, roboto-fallback, sans-serif;
   --heading-font-family: roboto-condensed, roboto-condensed-fallback, sans-serif;
@@ -345,29 +350,29 @@ main .section.full-width > div {
 }
 
 body.has-page-background {
-  background-image: var(--page-background-image);
   background-size: cover;
   background-position: center top;
   background-repeat: no-repeat;
   background-attachment: fixed;
 }
 
+/* When no hero banner is present, the page-wide image is used instead —
+   see hero-banner.css for the scoped, edge-to-edge hero version. */
+body.has-page-background:not(:has(.hero-banner)) {
+  background-image: var(--page-background-image);
+}
+
 body.has-page-background footer {
   background-color: transparent;
 }
 
-body.has-page-background::before {
+body.has-page-background:not(:has(.hero-banner))::before {
   content: '';
   position: fixed;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.35);
   z-index: -1;
   pointer-events: none;
-}
-
-/* Suppress the generic full-page dim when a header-width overlay is used instead */
-body.has-header-background-overlay::before {
-  content: none;
 }
 
 header, footer, main {
@@ -389,18 +394,21 @@ body.has-form-background main .form {
 }
 
 /* ================================
-   Metadata: Form Background + Page Background Image
-   When both are set, the form color becomes a translucent
-   overlay across the full header/hero width.
+   Metadata: Form Background + Page Background Image, no hero banner
+   Fallback overlay across the first section, for pages that set both
+   metadata values but don't use a Hero Banner block. When a Hero Banner
+   is present, hero-banner.css owns the overlay instead (see :not() guard).
    ================================ */
-body.has-header-background-overlay .hero-banner-container,
-body.has-header-background-overlay main > .section:first-child:not(:has(.hero-banner-container)) {
+body.has-header-overlay-enabled main > .section:first-child:not(:has(.hero-banner)) {
   position: relative;
   isolation: isolate;
+  background-image: var(--page-background-image);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
-body.has-header-background-overlay .hero-banner-container::before,
-body.has-header-background-overlay main > .section:first-child:not(:has(.hero-banner-container))::before {
+body.has-header-overlay-enabled main > .section:first-child:not(:has(.hero-banner))::before {
   content: '';
   position: absolute;
   z-index: -1;
@@ -410,8 +418,7 @@ body.has-header-background-overlay main > .section:first-child:not(:has(.hero-ba
   pointer-events: none;
 }
 
-body.has-header-background-overlay .hero-banner-container > *,
-body.has-header-background-overlay main > .section:first-child:not(:has(.hero-banner-container)) > * {
+body.has-header-overlay-enabled main > .section:first-child:not(:has(.hero-banner)) > * {
   position: relative;
   z-index: 1;
 }
