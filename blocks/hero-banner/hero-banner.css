@@ -27,18 +27,13 @@
 
 /* ================================
    Metadata: Page Background Image
-   Applied edge-to-edge behind the hero banner itself (not the whole page)
-   when a hero banner is present on the page.
+   The image is applied to the whole page (see styles.css, body.has-page-background).
+   The hero banner itself stays transparent by default so that page-wide image
+   shows through it too, unless the block's own Background Color field
+   (row 1 of the Hero Banner block content) sets an opaque color.
    ================================ */
-body.has-page-background:has(.hero-banner) {
-  background-image: none;
-}
-
-body.has-page-background .hero-banner {
-  background-image: var(--page-background-image);
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
+.hero-banner {
+  background-color: transparent;
 }
 
 /* ================================
