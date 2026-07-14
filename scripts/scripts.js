@@ -38,16 +38,34 @@ async function loadFonts() {
 }
 
 /**
+ * Returns true when a metadata value should be treated as "on".
+ * Accepts true/yes/on/y (case-insensitive). Anything else, including
+ * missing values, is treated as false.
+ * @param {string} value The raw metadata string
+ * @returns {boolean}
+ */
+function isEnabled(value) {
+  if (!value) return false;
+  return ['true', 'yes', 'on', 'y'].includes(String(value).trim().toLowerCase());
+}
+
+/**
  * Applies page-level background and text-color metadata.
  *
  * da.live Metadata keys:
  * - Form Background: #FFFFFF
+ *     Colors the form fields section only. Never affects the hero/header.
  * - Page Background Image: /path/to/image.jpg
+ *     Renders full-bleed behind the hero banner (or the first section
+ *     when no hero banner is present).
+ * - Header Overlay: true
+ *     Opt-in only. When explicitly set to true/yes/on, and both Form
+ *     Background and Page Background Image are also set, the form color
+ *     is layered as a translucent tint across the header/hero image.
+ *     Leave unset (the default) to show the header image with no tint,
+ *     even when Form Background is set for the form fields below it.
  * - Text Color: #111111
- *
- * Form Background controls the form surface. When an image is also set,
- * the same color is used as an overlay across the header/hero width.
- * Text Color, when present, overrides body/heading/form text color site-wide.
+ *     Overrides body/heading/form text color site-wide.
  * @param {Document} doc The document
  * @param {object} config Site configuration
  */
@@ -56,6 +74,9 @@ function applyPageBackgroundMetadata(doc, config = {}) {
   const pageBackgroundImage = getMetadata('page-background-image')
     || config['page-background-image'];
   const textColor = getMetadata('text-color') || config['text-color'];
+  const headerOverlayRequested = isEnabled(
+    getMetadata('header-overlay') || config['header-overlay'],
+  );
 
   if (formBackground) {
     document.documentElement.style.setProperty('--page-form-background', formBackground);
@@ -70,8 +91,10 @@ function applyPageBackgroundMetadata(doc, config = {}) {
     document.body.classList.add('has-page-background');
   }
 
-  if (formBackground && pageBackgroundImage) {
-    document.body.classList.add('has-header-background-overlay');
+  // Header Overlay is opt-in: Form Background + Page Background Image alone
+  // do NOT tint the header image. Explicitly set Header Overlay to enable it.
+  if (formBackground && pageBackgroundImage && headerOverlayRequested) {
+    document.body.classList.add('has-header-overlay-enabled');
   }
 
   if (textColor) {
